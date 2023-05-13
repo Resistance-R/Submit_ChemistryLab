@@ -5,8 +5,8 @@ using UnityEngine.UI;
 
 public class AtomController : MonoBehaviour
 {
-    [SerializeField]
-    private GameObject H_Image, He_Image, Li_Image, Be_Image, B_Image, C_Image, N_Image, O_Image, F_Image, Ne_Image, Na_Image, Mg_Image, Fe_Image;
+    // [SerializeField]
+    // private GameObject H_Image, He_Image, Li_Image, Be_Image, B_Image, C_Image, N_Image, O_Image, F_Image, Ne_Image, Na_Image, Mg_Image, Fe_Image;
 
     [SerializeField]
     private Image atomImage;
@@ -14,8 +14,17 @@ public class AtomController : MonoBehaviour
     [SerializeField]
     private int atomOrder = 0;
 
-    private List<string> atomDisplayingList = new List<string> {"H", "He", "Li", "Be", "B", "C", "N", "O", "F", "Ne", "Na", "Mg", "Fe"};
-    
+    [SerializeField]
+    private int reinforceSuccessRate = 80;
+
+    [SerializeField]
+    private int decreaseRate = 7;
+
+    [SerializeField]
+    private Text FailText;
+
+    private List<string> atomDisplayingList = new List<string> {"None", "H", "He", "Li", "Be", "B", "C", "N", "O", "F", "Ne", "Na", "Mg", "Fe"};
+
     void Start()
     {
        atomImage = GetComponent<Image>();
@@ -28,7 +37,6 @@ public class AtomController : MonoBehaviour
 
     public void ButtonDown()
     {
-        atomOrder++;
 
         if (atomOrder >= atomDisplayingList.Count)
         {
@@ -37,24 +45,39 @@ public class AtomController : MonoBehaviour
 
         string currentAtom = atomDisplayingList[atomOrder];
 
-        DisplayAtomImage(currentAtom);
+        UpgradeJudge(currentAtom);
         
-        Debug.Log("trying reinfore");
     }
 
-    private void DisplayAtomImage(string atom)
+    private void UpgradeJudge(string atom)
     {
-        string atomName = atomDisplayingList[atomOrder];
-        Sprite atomSprite = Resources.Load<Sprite>("Sprites/" + atomName);
+        Debug.Log("trying reinfore");
 
-        if (atomSprite != null)
+        string atomName = atomDisplayingList[atomOrder];
+        Sprite atomSprite = Resources.Load<Sprite>("Sprites/" + atomName); 
+        
+        int randomValue = Random.Range(1, 79);
+
+        if (randomValue > reinforceSuccessRate || reinforceSuccessRate <= 0)
+         {
+            atomOrder = 0;
+            atomName = atomDisplayingList[0];
+            Debug.Log("Atom is Broken!");
+            Debug.Log("Succes Rate:" + reinforceSuccessRate);
+            reinforceSuccessRate = 80;
+         }
+    
+        if(randomValue <= reinforceSuccessRate)
         {
-            atomImage.sprite = atomSprite;
-        }
-        else
-        {
-            Debug.LogWarning("Failed to load atom sprite: " + atomName);
+
+            if (atomSprite != null)
+            {
+                atomOrder++;
+                atomImage.sprite = atomSprite;
+            }
+
+            reinforceSuccessRate -= decreaseRate;
+            Debug.Log("Succes Rate:" + reinforceSuccessRate);
         }
     }
-    
 }
