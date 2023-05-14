@@ -5,9 +5,6 @@ using UnityEngine.UI;
 
 public class AtomController : MonoBehaviour
 {
-    // [SerializeField]
-    // private GameObject H_Image, He_Image, Li_Image, Be_Image, B_Image, C_Image, N_Image, O_Image, F_Image, Ne_Image, Na_Image, Mg_Image, Fe_Image;
-
     [SerializeField]
     private Image atomImage;
 
@@ -23,16 +20,22 @@ public class AtomController : MonoBehaviour
     [SerializeField]
     private Text FailText;
 
+    [SerializeField]
+    private Text[] inventorySlots;
+
     private List<string> atomDisplayingList = new List<string> {"None", "H", "He", "Li", "Be", "B", "C", "N", "O", "F", "Ne", "Na", "Mg", "Fe"};
+    private List<string> inventory = new List<string>(); // 추가된 부분
+
 
     void Start()
     {
        atomImage = GetComponent<Image>();
+       UpdateInventoryUI();
     }
 
     void Update()
     {
-        
+
     }
 
     public void ButtonDown()
@@ -46,8 +49,50 @@ public class AtomController : MonoBehaviour
         string currentAtom = atomDisplayingList[atomOrder];
 
         UpgradeJudge(currentAtom);
+
         
     }
+
+    private IEnumerator ShowFailText()
+    {
+        if (FailText != null)
+        {
+            FailText.text = "The atom was destroyed";
+            FailText.gameObject.SetActive(true);
+            Debug.Log("Atom Reset");
+
+            yield return new WaitForSeconds(2f); // 실패 텍스트를 2초 동안 표시
+
+            FailText.gameObject.SetActive(false);
+        }
+    }
+
+    public void KeepButtonDown()
+    {
+        string currentAtom = atomDisplayingList[atomOrder];
+        AddToInventory(currentAtom);
+    }
+
+    private void AddToInventory(string atom) // 추가된 함수
+    {
+        inventory.Add(atom);
+        UpdateInventoryUI();
+    }
+
+    private void UpdateInventoryUI() // 추가된 함수
+    {
+        if (inventorySlots.Length != inventory.Count)
+        {
+            Debug.LogWarning("Inventory slot count does not match inventory size.");
+            return;
+        }
+
+        for (int i = 0; i < inventory.Count; i++)
+        {
+            inventorySlots[i].text = inventory[i];
+        }
+    }
+
 
     private void UpgradeJudge(string atom)
     {
@@ -62,9 +107,10 @@ public class AtomController : MonoBehaviour
          {
             atomOrder = 0;
             atomName = atomDisplayingList[0];
-            Debug.Log("Atom is Broken!");
             Debug.Log("Succes Rate:" + reinforceSuccessRate);
             reinforceSuccessRate = 80;
+
+            StartCoroutine(ShowFailText());
          }
     
         if(randomValue <= reinforceSuccessRate)
@@ -80,4 +126,5 @@ public class AtomController : MonoBehaviour
             Debug.Log("Succes Rate:" + reinforceSuccessRate);
         }
     }
+
 }
