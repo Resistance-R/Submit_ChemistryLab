@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class AtomController : MonoBehaviour
 {
@@ -21,26 +22,58 @@ public class AtomController : MonoBehaviour
     private Text FailText;
 
     [SerializeField]
-    private Text[] inventorySlots;
+    private Button Warrior;
 
-    private List<string> atomDisplayingList = new List<string> {"None", "H", "He", "Li", "Be", "B", "C", "N", "O", "F", "Ne", "Na", "Mg", "Fe"};
-    private List<string> inventory = new List<string>(); // 추가된 부분
+    [SerializeField]
+    private Image WarriorImage;
+
+    private string savedAtom;
+
+    private List<string> atomDisplayingList = new List<string> {"None", "H", "He", "Li", "Be", "B", "C", "N", "O", "F", "Ne", "Na", "Mg", "Fe", "Ending"};
+    private List<string> inventory = new List<string>();
 
 
     void Start()
     {
        atomImage = GetComponent<Image>();
-       UpdateInventoryUI();
+       WarriorImage = GetComponent<Image>();
     }
 
     void Update()
     {
+       Ending();
+    }
 
+    public void Ending()
+    {
+        if (Warrior != null)
+        {
+            if (atomOrder == 15)
+            {
+                Sprite isis = Resources.Load<Sprite>("Sprites/Ending.png");
+                Warrior.gameObject.SetActive(true);
+                WarriorImage.sprite = isis;
+            }
+
+        else
+            {
+                Warrior.gameObject.SetActive(false);
+            }
+        }
+        if(Input.GetKeyDown(KeyCode.L))
+        {
+        StartCoroutine(LoadEndingScene());
+        }
+    }
+
+    private IEnumerator LoadEndingScene()
+    {
+        yield return new WaitForSeconds(1f); 
+        SceneManager.LoadScene("EndingScene");
     }
 
     public void ButtonDown()
     {
-
         if (atomOrder >= atomDisplayingList.Count)
         {
             atomOrder = atomDisplayingList.Count - 1;
@@ -48,56 +81,17 @@ public class AtomController : MonoBehaviour
 
         string currentAtom = atomDisplayingList[atomOrder];
 
+        if (Input.GetKey(KeyCode.K))
+        {
+            DisplayRecentAtom(savedAtom);
+        }
+
         UpgradeJudge(currentAtom);
-
-        
     }
-
-    private IEnumerator ShowFailText()
-    {
-        if (FailText != null)
-        {
-            FailText.text = "The atom was destroyed";
-            FailText.gameObject.SetActive(true);
-            Debug.Log("Atom Reset");
-
-            yield return new WaitForSeconds(2f); // 실패 텍스트를 2초 동안 표시
-
-            FailText.gameObject.SetActive(false);
-        }
-    }
-
-    public void KeepButtonDown()
-    {
-        string currentAtom = atomDisplayingList[atomOrder];
-        AddToInventory(currentAtom);
-    }
-
-    private void AddToInventory(string atom) // 추가된 함수
-    {
-        inventory.Add(atom);
-        UpdateInventoryUI();
-    }
-
-    private void UpdateInventoryUI() // 추가된 함수
-    {
-        if (inventorySlots.Length != inventory.Count)
-        {
-            Debug.LogWarning("Inventory slot count does not match inventory size.");
-            return;
-        }
-
-        for (int i = 0; i < inventory.Count; i++)
-        {
-            inventorySlots[i].text = inventory[i];
-        }
-    }
-
 
     private void UpgradeJudge(string atom)
     {
-        Debug.Log("trying reinfore");
-
+        
         string atomName = atomDisplayingList[atomOrder];
         Sprite atomSprite = Resources.Load<Sprite>("Sprites/" + atomName); 
         
@@ -113,8 +107,8 @@ public class AtomController : MonoBehaviour
             StartCoroutine(ShowFailText());
          }
     
-        if(randomValue <= reinforceSuccessRate)
-        {
+            if(randomValue <= reinforceSuccessRate)
+            {
 
             if (atomSprite != null)
             {
@@ -124,7 +118,49 @@ public class AtomController : MonoBehaviour
 
             reinforceSuccessRate -= decreaseRate;
             Debug.Log("Succes Rate:" + reinforceSuccessRate);
+
+            }
+    }
+
+    private IEnumerator ShowFailText()
+    {
+        if (FailText != null)
+        {
+            FailText.text = "The atom was destroyed";
+            FailText.gameObject.SetActive(true);
+
+            yield return new WaitForSeconds(2f);
+
+            FailText.gameObject.SetActive(false);
         }
     }
 
+    public void KeepButtonDown()
+    {
+        string currentAtom = atomDisplayingList[atomOrder];
+        AddToInventory(currentAtom);
+        Debug.Log(inventory.Count);
+    }
+
+    private void AddToInventory(string atom)
+    {
+        inventory.Add(atom);
+        savedAtom = atom;
+    }
+
+    private void DisplayRecentAtom(string newAtom)
+    {
+        if (!string.IsNullOrEmpty(savedAtom))
+        {
+            string recentAtom = savedAtom;
+            Sprite recentAtomSprite = Resources.Load<Sprite>("Sprites/" + recentAtom);
+
+            if (recentAtomSprite != null)
+            {
+                atomImage.sprite = recentAtomSprite;
+            }
+        }
+
+        Debug.Log("K");
+    }
 }
